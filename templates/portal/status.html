@@ -16,9 +16,6 @@
 				<th>{% trans "Title" %}</th>
 				<th>{% trans "Date" %}</th>
 				<th>{% trans "Encoding Done" %}</th>
-				{% if settings.USE_BITTORRENT %}
-				<th>{% trans "Torrent Created" %}</th>
-				{% endif %}
 				<th>{%trans "Auto Publish" %}</th>
 				<th>{% trans "Tasks" %}</th>
 				</tr>
@@ -29,9 +26,6 @@
 						<th><a href="/item/{{ mediaitem.slug }}">{{ mediaitem.title }}</a></th>
 						<td>{{ mediaitem.date }}</td>
 						<td>{% if mediaitem.encodingDone %}<i class="glyphicon glyphicon-ok"></i>{% else %}<i class="icon-remove"></i>{% endif %}</td>
-						{% if settings.USE_BITTORRENT %}
-						<td>{% if mediaitem.torrentDone %}<i class="glyphicon glyphicon-ok"></i>{% else %}<i class="icon-remove"></i>{% endif %}</td>
-						{% endif %}
 						<td>{% if mediaitem.autoPublish %}<i class="glyphicon glyphicon-ok"></i>{% else %}<i class="icon-remove"></i>{% endif %}</td>
 						<td>
 						<ul>
@@ -39,8 +33,6 @@
 								<li>
 									{% if task.method == "get_and_save_cover" %}
 										{% trans "Save cover" %}:
-									{% elif task.method == "create_bittorrent" %}
-										{% trans "Create torrent" %}:
 									{% else %}
 										{% trans "Unknown task" %}:
 									{% endif %}

@@ -175,12 +175,10 @@ INSTALLED_APPS = (
     'django_admin_bootstrapped',
     'django.contrib.admin',
     #'django.contrib.admindocs',
-    'taggit',
     'portal',
     'livestream',
     'pages',
     'djangotasks',
-    'taggit_templatetags',
     'simple_open_graph',
     'captcha',
 )
@@ -209,21 +207,6 @@ ENABLE_VIDEO = True
 # Host and port for the mail server to send mails for new comments
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
-
-USE_BITTORRENT = False
-# example: "udp://tracker.example.com:80"
-BITTORRENT_TRACKER_ANNOUNCE_URL = ''
-# example: "udp://tracker.example1.com:80,udp://tracker.example2.com:80,udp://tracker.example3.com:80"
-BITTORRENT_TRACKER_BACKUP = ''
-BITTORRENT_FILES_DIR = MEDIA_ROOT + '/torrents/'
-# Where does transmission expects the original files? (This directory must be writeable for both transmission and LambdaCast!)
-BITTORRENT_DOWNLOADS_DIR = ''
-# What is the URL of the BITTORRENT_FILES_DIR?
-BITTORRENT_FILES_BASE_URL = DOMAIN + '/media/torrents/'
-
-# Host and port Transmission is listining on (probably localhost
-TRANSMISSION_HOST = '127.0.0.1'
-TRANSMISSION_PORT = 9091
 
 # Base-Dir vor Hotfolders, example: "/opt/hotfolder/" 
 HOTFOLDER_BASE_DIR = ''

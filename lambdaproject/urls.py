@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.views.generic import RedirectView
-from portal.feeds import LatestMedia, TorrentFeed, ChannelFeed, ChannelFeedTorrent, CollectionFeed, CollectionFeedTorrent, CommentsFeed
+from portal.feeds import LatestMedia, ChannelFeed, CollectionFeed, CommentsFeed
 from livestream.feeds import UpcomingEvents
 
 import lambdaproject.settings as settings
@@ -14,9 +14,7 @@ urlpatterns = patterns('',
     url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico')),
     url(r'^item/(?P<slug>[-\w]+)/$', 'portal.views.detail'),
     url(r'^item/(?P<slug>[-\w]+)/get_duration$', 'portal.views.get_duration'),
-    url(r'^tags/(?P<tag>[\w|\W]+)/$', 'portal.views.tag'),
     url(r'^collection/(?P<slug>[-\w]+)/$', 'portal.views.collection'),
-    url(r'^json_tags/(?P<tag>[\w|\W]+)/$', 'portal.views.tag_json'),
     url(r'^channel/(?P<slug>[-\w]+)/$', 'portal.views.channel_list'),
     url(r'^item/iframe/(?P<slug>[-\w]+)/$', 'portal.views.iframe'),
     url(r'^submittal/(?P<subm_id>\d+)/$', 'portal.views.submittal'),
@@ -33,11 +31,8 @@ urlpatterns = patterns('',
     url(r'^logout/', 'django.contrib.auth.views.logout', {'next_page': '/'}),
     url(r'^feeds/latest/(?P<fileformat>[-\w]+)/$', LatestMedia()),
     url(r'^feeds/stream/upcoming', UpcomingEvents()),
-    url(r'^feeds/latest/torrent', TorrentFeed()),
     url(r'^feeds/(?P<channel_slug>[-\w]+)/(?P<fileformat>[-\w]+)/$', ChannelFeed()),
-    url(r'^feeds/(?P<channel_slug>[-\w]+)/torrent/$', ChannelFeedTorrent()),
     url(r'^feeds/collection/(?P<collection_slug>[-\w]+)/(?P<fileformat>[-\w]+)/$', CollectionFeed()),
-    url(r'^feeds/collection/(?P<collection_slug>[-\w]+)/torrent/$', CollectionFeedTorrent()),
     url(r'^feeds/comments/$', CommentsFeed()),
     url(r'^captcha/', include('captcha.urls')),
     url(r'^admin/', include(admin.site.urls)),

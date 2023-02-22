@@ -30,7 +30,7 @@ class MediaItemForm(ModelForm):
 
     class Meta:
         model = MediaItem
-        exclude = ["slug","duration","published","encodingDone","torrentURL","user", "torrentDone","videoThumbURL","audioThumbURL"]
+        exclude = ["slug","duration","published","encodingDone","user","videoThumbURL","audioThumbURL"]
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label_suffix', '')
@@ -85,7 +85,6 @@ class SubmittalForm(ModelForm):
                 field.widget.attrs['class'] = 'required form-control'
             self.fields['published'].widget.attrs['class'] = ''
             self.fields['encodingDone'].widget.attrs['class'] = ''
-            self.fields['torrentDone'].widget.attrs['class'] = ''
 
     def create_mediafiles(self, mediaitem):
         if not self.data['media_webmURL'] == "":

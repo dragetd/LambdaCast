@@ -13,7 +13,6 @@ from portal.forms import MediaItemForm, CommentForm, getThumbnails, ThumbnailFor
 from portal.media_formats import MEDIA_FORMATS
 from portal.templatetags.custom_filters import seconds_to_hms
 
-from taggit.models import Tag
 import lambdaproject.settings as settings
 
 import djangotasks
@@ -37,7 +36,6 @@ def index(request):
     rss_list = []
     for file_type in MEDIA_FORMATS:
         rss_list.append((MEDIA_FORMATS[file_type].format_key,MEDIA_FORMATS[file_type].mediatype,"/feeds/latest/"+file_type))
-    rss_list.append(('torrent','torrent','/feeds/latest/torrent'))
     try:
         mediaitems = paginator.page(page)
     except PageNotAnInteger:
@@ -62,7 +60,6 @@ def channel_list(request,slug):
     rss_list = []
     for file_type in MEDIA_FORMATS:
         rss_list.append((MEDIA_FORMATS[file_type].format_key,MEDIA_FORMATS[file_type].mediatype,"/feeds/"+channel.slug+"/"+file_type))
-    rss_list.append(('torrent','torrent','/feeds/'+channel.slug+'/torrent'))
     try:
         mediaitems = paginator.page(page)
     except PageNotAnInteger:
@@ -111,15 +108,6 @@ def iframe(request, slug):
     mediaitem = get_object_or_404(MediaItem, slug=slug)
     return TemplateResponse(request, 'portal/items/iframe.html', {'mediaitem': mediaitem})
 
-def tag(request, tag):
-    ''' Gets all media items for a specified tag'''
-    if request.user.is_authenticated():
-        mediaitemslist = MediaItem.objects.filter(encodingDone=True, tags__slug__in=[tag]).order_by('-date')
-    else:
-        mediaitemslist = MediaItem.objects.filter(encodingDone=True, published=True, tags__slug__in=[tag]).order_by('-date')
-    tag_name = get_object_or_404(Tag, slug=tag)
-    return TemplateResponse(request, 'portal/items/list.html', {'mediaitems_list': mediaitemslist, 'tag': tag_name})
-
 def collection(request, slug):
     ''' Gets all media items for a channel'''
     collection = get_object_or_404(Collection, slug=slug)
@@ -139,7 +127,7 @@ def search(request):
     if ('q' in request.GET) and request.GET['q'].strip():
         query_string = request.GET['q']
 
-        entry_query = _get_query(query_string, ['title', 'description', 'tags__name'])
+        entry_query = _get_query(query_string, ['title', 'description'])
 
         if request.user.is_authenticated():
             found_entries = MediaItem.objects.filter(entry_query).order_by('-date')
@@ -155,16 +143,11 @@ def search_json(request):
     if ('q' in request.GET) and request.GET['q'].strip():
         query_string = request.GET['q']
 
-        entry_query = _get_query(query_string, ['title', 'description','tags__name'])
+        entry_query = _get_query(query_string, ['title', 'description'])
 
         found_entries = MediaItem.objects.filter(entry_query).order_by('-date')
 
     data = serializers.serialize('json', found_entries)
-    return HttpResponse(data, content_type = 'application/javascript; charset=utf8')
-           
-def tag_json(request, tag):
-    mediaitemslist = MediaItem.objects.filter(encodingDone=True, published=True, tags__name__in=[tag]).order_by('-date')
-    data = serializers.serialize('json', mediaitemslist)
     return HttpResponse(data, content_type = 'application/javascript; charset=utf8')
 
 @login_required
@@ -188,7 +171,6 @@ def submittal(request, subm_id):
             'channel': submittal.media_channel,
             'license': submittal.media_license,
             'linkURL': submittal.media_linkURL,
-            'torrentURL': submittal.media_torrentURL,
             'media_mp4URL': submittal.media_mp4URL,
             'media_webmURL': submittal.media_webmURL,
             'media_mp3URL': submittal.media_mp3URL,
@@ -197,7 +179,6 @@ def submittal(request, subm_id):
             'videoThumbURL': submittal.media_videoThumbURL,
             'audioThumbURL': submittal.media_audioThumbURL,
             'published': submittal.media_published,
-            'tags': ", ".join(str(x) for x in  submittal.media_tags.all()),
             'torrentDone': submittal.media_torrentDone,
             'encodingDone': True,
         })
@@ -233,9 +214,7 @@ def _handle_uploaded_thumbnail(f, filename):
 @login_required
 def submit(request):
     ''' The view for uploading the items. Only authenticated users can upload media items!
-    We use django tasks to make a new task task for encoding this items. If we use 
-    bittorrent to distribute our files we also use django tasks to make the .torrent 
-    files (this can take a few minutes for very large files '''
+    We use django tasks to make a new task task for encoding this items.'''
     if request.method == 'POST':
         form = MediaItemForm(request.POST, request.FILES or None)
         if form.is_valid():
@@ -262,10 +241,6 @@ def submit(request):
                                                       media_item=media_item, mediatype=media_format.mediatype)
                 encoding_task = djangotasks.task_for_object(media_file.encode_media)
                 djangotasks.run_task(encoding_task)
-
-            if settings.USE_BITTORRENT:
-                torrent_task = djangotasks.task_for_object(media_item.create_bittorrent)
-                djangotasks.run_task(torrent_task)
             return redirect(index)
 
         return TemplateResponse(request, 'portal/submit.html', {'submit_form': form})

@@ -10,7 +10,6 @@ from django.core.mail import send_mail
 import djangotasks
 
 from autoslug import AutoSlugField
-from taggit.managers import TaggableManager
 
 import lambdaproject.settings as settings
 
@@ -33,8 +32,6 @@ from mutagen.id3 import ID3
 from threading import Event
 
 import markdown
-
-from BitTornadoABC.btmakemetafile import make_meta_file
 
 from datetime import date
 
@@ -84,7 +81,7 @@ class MediaFile(models.Model):
         return djangotasks.Task.objects.filter(object_id=self.pk, model="portal.mediafile")
 
 class MediaItem(models.Model):
-    ''' The model for our items. It uses slugs (with DjangoAutoSlug) and tags (with Taggit)
+    ''' The model for our items. It uses slugs (with DjangoAutoSlug) and
     everything else is quite standard. The sizes fields are used in the feeds to make enclosures
     possible. The videoThumbURL is the URL for Projekktor's "poster". Why are there URL fields
     and not file fields? Because you maybe want to use external storage (like Amazon S3) to
@@ -97,15 +94,12 @@ class MediaItem(models.Model):
     channel = models.ForeignKey('portal.Channel',blank=True,null=True,verbose_name=_(u"Channel"),help_text=_(u"Channels are used to order your media"))
     license = models.CharField(_(u"License"),max_length=200,choices=LICENSE_CHOICES,default="CC-BY",help_text=_(u"Rights the viewer/listener has"))
     linkURL = models.URLField(_(u"Link"),blank=True, help_text=_(u"Insert a link to a blog or website that relates to the media"))
-    torrentURL = models.URLField(_(u"Torrent-URL"),blank=True,help_text=_(u"The URL to the torrent-file"))
     videoThumbURL = models.URLField(_(u"Video Thumb-URL"),blank=True, help_text=_(u"Use a picture as thumbnail for the media list"))
     audioThumbURL = models.URLField(_(u"Audio Cover-URL"),blank=True, help_text=_(u"Use a picture as cover for the media list"))
     duration = models.DecimalField(verbose_name=_(u"Duration"),null=True, max_digits=10, decimal_places=2, blank=True, help_text=_(u"The length of the media"))
     autoPublish = models.BooleanField(verbose_name=_(u"Auto-Publish"),default=True)
     published = models.BooleanField(verbose_name=_(u"Published"),default=False)
     encodingDone = models.BooleanField(verbose_name=_(u"Encoding done"),default=False)
-    torrentDone = models.BooleanField(verbose_name=_(u"Torrent done"),default=False)
-    tags = TaggableManager(_(u"Tags"),blank=True,help_text=_(u"Insert what the media item is about in short terms divided by commas"))
     created = models.DateTimeField(verbose_name=_(u"Created"),auto_now_add=True)
     modified = models.DateTimeField(verbose_name=_(u"Modified"),auto_now=True)
     originalFile = models.FileField(_(u"File"),upload_to="raw/%Y/%m/%d/",max_length=2048)
@@ -207,23 +201,6 @@ class MediaItem(models.Model):
             mediaitem.published = mediaitem.autoPublish and mediaitem.encodingDone
             # TODO: use update_fields after update to django 1.5
             mediaitem.save()
-
-    def create_bittorrent(self):
-        ''' This is where the bittorrent files are created and transmission is controlled'''
-        flag = Event()
-        make_meta_file(str(self.originalFile.path),
-            settings.BITTORRENT_TRACKER_ANNOUNCE_URL,
-            params = {'target' : settings.BITTORRENT_FILES_DIR
-                                            + self.slug + '.torrent',
-             'piece_size_pow2' : 18,
-             'announce_list': settings.BITTORRENT_TRACKER_BACKUP,
-             'url_list' : str(self.originalFile.url)},
-             flag = flag,
-             progress_percent=0)
-        self.torrentURL = settings.BITTORRENT_FILES_BASE_URL + self.slug + '.torrent'
-        self.torrentDone = True
-        self.published = self.autoPublish
-        self.save()
 
     def get_duration(self, filepath):
         process = subprocess.Popen(['ffmpeg',  '-i', filepath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -381,7 +358,6 @@ class Submittal(models.Model):
     media_channel = models.ForeignKey('portal.Channel',blank=True,null=True,verbose_name=_(u"Channel"),help_text=_(u"Channels are used to order your media"))
     media_license = models.CharField(_(u"License"),max_length=200,choices=LICENSE_CHOICES,default="CC-BY",help_text=_(u"Rights the viewer/listener has"))
     media_linkURL = models.URLField(_(u"Link"),blank=True,help_text=_(u"Insert a link to a blog or website that relates to the media"))
-    media_torrentURL = models.URLField(_(u"Torrent-URL"),blank=True,help_text=_(u"The URL to the torrent-file"))
     media_mp4URL = models.URLField(_(u"MP4-URL"),blank=True,help_text=_(u"Add the link of the media folder or any other one with .mp4 ending"))
     media_webmURL = models.URLField(_(u"WEBM-URL"),blank=True, help_text=_(u"Add the link of the media folder or any other one with .webm ending"))
     media_mp3URL = models.URLField(_(u"MP3-URL"),blank=True, help_text=_(u"Add the link of the media folder or any other one with .mp3 ending"))
@@ -390,8 +366,6 @@ class Submittal(models.Model):
     media_videoThumbURL = models.URLField(_(u"Video Thumb-URL"),blank=True, help_text=_(u"Use a picture as thumbnail"))
     media_audioThumbURL = models.URLField(_(u"Audio Cover-URL"),blank=True, help_text=_(u"Use a picture as cover"))
     media_published = models.BooleanField(verbose_name=_(u"Published"),default=False)
-    media_tags = TaggableManager(_(u"Tags"),blank=True,help_text=_(u"Insert what the media item is about in short terms divided by commas"))
-    media_torrentDone = models.BooleanField(verbose_name=_(u"Torrent done"),default=False)
 
     class Meta:
         verbose_name = _('Submittal')
@@ -407,4 +381,3 @@ post_delete.connect(purge_files, sender=MediaItem)
 djangotasks.register_task(MediaFile.encode_media, "Encode the file using ffmpeg")
 djangotasks.register_task(MediaItem.get_and_save_cover, "Get the cover from the original file")
 djangotasks.register_task(MediaItem.get_and_save_duration, "Get the duration from the original or transcoded file")
-djangotasks.register_task(MediaItem.create_bittorrent, "Create Bittorrent file for item and serve it")
