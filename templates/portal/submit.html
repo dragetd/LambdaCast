@@ -92,18 +92,6 @@
 						</label>
 						{{ submit_form.linkURL }}
 					</div>
-					<!-- tags -->
-					<div class="form-group">
-						{% if submit_form.tags.errors %}
-						<div class="alert alert-danger">
-							<strong>{% trans "Error!" %}</strong>{{ submit_form.tags.errors }}
-						</div>
-						{% endif %}
-						<label class="control-label">
-							{{ submit_form.tags.label_tag }}{% if submit_form.tags.field.required %} *{% endif %}
-						</label>
-						{{ submit_form.tags }}
-					</div>
 				</div>
 				<div class="col-md-6">
 					<!-- fileFormats -->

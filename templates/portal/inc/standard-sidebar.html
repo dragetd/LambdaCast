@@ -1,5 +1,4 @@
 {% load i18n %}
-{% load taggit_extras %}
 <div class="col-md-3 col-xs-12 col-sm-12">
 	<div class="thumbnail">
 		<a href="{{ settings.WEBSITE_URL }}"><img src="{{ STATIC_URL }}logo.png" alt="logo"></a>
@@ -24,18 +23,5 @@
 			</div>
 		</div>
 		{% endif %}
-		{% get_tagcloud as tags for 'portal.MediaItem' %}
-		<div class="col-md-12 col-xs-6">
-			{% if tags %}
-			<div class="list-group text-center">
-				<a class="list-group-item disabled">{% trans "Tags" %} </a>
-				<div class="list-group-item">
-				{% for tag in tags %}
-					<a href="/tags/{{tag.slug}}" class="tag-weight-{{tag.weight|floatformat:0}}">{{tag.name}}</a>
-				{% endfor %}
-				</div>
-			</div>
-			{% endif %}
-		</div>
 	</div>
 </div>

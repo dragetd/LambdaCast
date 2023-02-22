@@ -10,7 +10,6 @@ from django.core.mail import send_mail
 import djangotasks
 
 from autoslug import AutoSlugField
-from taggit.managers import TaggableManager
 
 import lambdaproject.settings as settings
 
@@ -84,7 +83,7 @@ class MediaFile(models.Model):
         return djangotasks.Task.objects.filter(object_id=self.pk, model="portal.mediafile")
 
 class MediaItem(models.Model):
-    ''' The model for our items. It uses slugs (with DjangoAutoSlug) and tags (with Taggit)
+    ''' The model for our items. It uses slugs (with DjangoAutoSlug) and
     everything else is quite standard. The sizes fields are used in the feeds to make enclosures
     possible. The videoThumbURL is the URL for Projekktor's "poster". Why are there URL fields
     and not file fields? Because you maybe want to use external storage (like Amazon S3) to
@@ -105,7 +104,6 @@ class MediaItem(models.Model):
     published = models.BooleanField(verbose_name=_(u"Published"),default=False)
     encodingDone = models.BooleanField(verbose_name=_(u"Encoding done"),default=False)
     torrentDone = models.BooleanField(verbose_name=_(u"Torrent done"),default=False)
-    tags = TaggableManager(_(u"Tags"),blank=True,help_text=_(u"Insert what the media item is about in short terms divided by commas"))
     created = models.DateTimeField(verbose_name=_(u"Created"),auto_now_add=True)
     modified = models.DateTimeField(verbose_name=_(u"Modified"),auto_now=True)
     originalFile = models.FileField(_(u"File"),upload_to="raw/%Y/%m/%d/",max_length=2048)
@@ -390,7 +388,6 @@ class Submittal(models.Model):
     media_videoThumbURL = models.URLField(_(u"Video Thumb-URL"),blank=True, help_text=_(u"Use a picture as thumbnail"))
     media_audioThumbURL = models.URLField(_(u"Audio Cover-URL"),blank=True, help_text=_(u"Use a picture as cover"))
     media_published = models.BooleanField(verbose_name=_(u"Published"),default=False)
-    media_tags = TaggableManager(_(u"Tags"),blank=True,help_text=_(u"Insert what the media item is about in short terms divided by commas"))
     media_torrentDone = models.BooleanField(verbose_name=_(u"Torrent done"),default=False)
 
     class Meta:

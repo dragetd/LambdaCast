@@ -37,7 +37,7 @@ class MediaItemAdmin (admin.ModelAdmin):
     list_filter = ('published', 'channel')
     fieldsets = (
         (None, {
-            'fields': ('title', 'date', 'description', 'channel', 'license', 'linkURL', 'tags', 'published')
+            'fields': ('title', 'date', 'description', 'channel', 'license', 'linkURL', 'published')
         }),
         (_(u'Advanced options'), {
             'classes': ('collapse',),

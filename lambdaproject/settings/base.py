@@ -175,12 +175,10 @@ INSTALLED_APPS = (
     'django_admin_bootstrapped',
     'django.contrib.admin',
     #'django.contrib.admindocs',
-    'taggit',
     'portal',
     'livestream',
     'pages',
     'djangotasks',
-    'taggit_templatetags',
     'simple_open_graph',
     'captcha',
 )
