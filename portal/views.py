@@ -1,27 +1,25 @@
 # -*- coding: utf-8 -*-
-from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.core import serializers
-from django.utils.translation import ugettext_lazy as _
-from django.template.response import TemplateResponse
-
-from portal.models import MediaItem, Comment, Channel, Collection, Submittal, MediaFile
-from portal.forms import MediaItemForm, CommentForm, getThumbnails, ThumbnailForm, SubmittalForm
-from portal.media_formats import MEDIA_FORMATS
-from portal.templatetags.custom_filters import seconds_to_hms
-
-from taggit.models import Tag
-import lambdaproject.settings as settings
-
-import djangotasks
-
+import itertools
 import os
 import re
 from operator import attrgetter
-import itertools
+
+import djangotasks
+from django.contrib.auth.decorators import login_required
+from django.core import serializers
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.template.response import TemplateResponse
+from django.utils.translation import ugettext_lazy as _
+
+import lambdaproject.settings as settings
+from portal.forms import MediaItemForm, CommentForm, getThumbnails, ThumbnailForm, SubmittalForm
+from portal.media_formats import MEDIA_FORMATS
+from portal.models import MediaItem, Comment, Channel, Collection, Submittal, MediaFile
+from portal.templatetags.custom_filters import seconds_to_hms
+
 
 def index(request):
     ''' This view is the front page of OwnTube. It just gets the first 15 available media items and
@@ -85,7 +83,7 @@ def get_duration(request, slug):
 def detail(request, slug):
     ''' Handles the detail view of a media item (the player so to say) and handles the comments (this should become nicer with AJAX and stuff)'''
     mediaitem = get_object_or_404(MediaItem, slug=slug)
-    if request.user.is_authenticated(): 
+    if request.user.is_authenticated():
         comment_list = Comment.objects.filter(item=mediaitem).order_by('-created')
     else:
         comment_list = Comment.objects.filter(item=mediaitem,moderated=True).order_by('-created')
@@ -110,15 +108,6 @@ def iframe(request, slug):
     ''' Returns an iframe for a item so that media items can be shared easily '''
     mediaitem = get_object_or_404(MediaItem, slug=slug)
     return TemplateResponse(request, 'portal/items/iframe.html', {'mediaitem': mediaitem})
-
-def tag(request, tag):
-    ''' Gets all media items for a specified tag'''
-    if request.user.is_authenticated():
-        mediaitemslist = MediaItem.objects.filter(encodingDone=True, tags__slug__in=[tag]).order_by('-date')
-    else:
-        mediaitemslist = MediaItem.objects.filter(encodingDone=True, published=True, tags__slug__in=[tag]).order_by('-date')
-    tag_name = get_object_or_404(Tag, slug=tag)
-    return TemplateResponse(request, 'portal/items/list.html', {'mediaitems_list': mediaitemslist, 'tag': tag_name})
 
 def collection(request, slug):
     ''' Gets all media items for a channel'''
@@ -161,7 +150,7 @@ def search_json(request):
 
     data = serializers.serialize('json', found_entries)
     return HttpResponse(data, content_type = 'application/javascript; charset=utf8')
-           
+
 def tag_json(request, tag):
     mediaitemslist = MediaItem.objects.filter(encodingDone=True, published=True, tags__name__in=[tag]).order_by('-date')
     data = serializers.serialize('json', mediaitemslist)
@@ -289,8 +278,8 @@ def status(request):
     return TemplateResponse(request, 'portal/status.html', {'mediaitems': mediaitems})
 
 def _normalize_query(query_string,
-                    findterms=re.compile(r'"([^"]+)"|(\S+)').findall,
-                    normspace=re.compile(r'\s{2,}').sub):
+                     findterms=re.compile(r'"([^"]+)"|(\S+)').findall,
+                     normspace=re.compile(r'\s{2,}').sub):
     ''' Splits the query string in invidual keywords, getting rid of unecessary spaces
         and grouping quoted words together.
         Example:
@@ -298,7 +287,7 @@ def _normalize_query(query_string,
         >>> _normalize_query('  some random  words "with   quotes  " and   spaces')
         ['some', 'random', 'words', 'with quotes', 'and', 'spaces']
     '''
-    return [normspace(' ', (t[0] or t[1]).strip()) for t in findterms(query_string)] 
+    return [normspace(' ', (t[0] or t[1]).strip()) for t in findterms(query_string)]
 
 def _get_query(query_string, search_fields):
     ''' Returns a query, that is a combination of Q objects. That combination

@@ -1,42 +1,33 @@
 # -*- coding: utf-8 -*-
-from django.utils.translation import ugettext_lazy as _
-from django.db import models
-from django.db.models.signals import pre_save, post_delete
-from django.contrib.auth.models import User
-from django.utils.formats import localize_input, date_format, time_format
-from django.utils import timezone
-from django.core.mail import send_mail
+import decimal
+import os.path
+import re
+import subprocess
+import time
+from datetime import date
+from threading import Event
 
 import djangotasks
-
+import markdown
 from autoslug import AutoSlugField
-from taggit.managers import TaggableManager
-
-import lambdaproject.settings as settings
-
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.db import models
+from django.db.models.signals import pre_save, post_delete
+from django.utils import timezone
+from django.utils.formats import localize_input, date_format, time_format
+from django.utils.translation import ugettext_lazy as _
+from mutagen.id3 import ID3
+from mutagen.mp3 import MP3
 from pytranscode.ffmpeg import ffmpeg
 
-from portal.signals import get_remote_filesize, purge_files, get_mediatype
+import lambdaproject.settings as settings
+from BitTornadoABC.btmakemetafile import make_meta_file
 from portal.licenses import LICENSE_CHOICES, LICENSE_URLS
 from portal.media_formats import FILE_FORMATS, MEDIA_TYPES, MEDIA_FORMATS
 from portal.model_helpers import *
+from portal.signals import get_remote_filesize, purge_files, get_mediatype
 
-import subprocess
-import decimal
-import re
-import time
-import os.path
-
-from mutagen.mp3 import MP3
-from mutagen.id3 import ID3
-
-from threading import Event
-
-import markdown
-
-from BitTornadoABC.btmakemetafile import make_meta_file
-
-from datetime import date
 
 class MediaFile(models.Model):
     ''' The model only for the media files '''
@@ -105,7 +96,6 @@ class MediaItem(models.Model):
     published = models.BooleanField(verbose_name=_(u"Published"),default=False)
     encodingDone = models.BooleanField(verbose_name=_(u"Encoding done"),default=False)
     torrentDone = models.BooleanField(verbose_name=_(u"Torrent done"),default=False)
-    tags = TaggableManager(_(u"Tags"),blank=True,help_text=_(u"Insert what the media item is about in short terms divided by commas"))
     created = models.DateTimeField(verbose_name=_(u"Created"),auto_now_add=True)
     modified = models.DateTimeField(verbose_name=_(u"Modified"),auto_now=True)
     originalFile = models.FileField(_(u"File"),upload_to="raw/%Y/%m/%d/",max_length=2048)
@@ -123,7 +113,7 @@ class MediaItem(models.Model):
 
     def mediafiles(self):
         return self.mediafile_set.exclude(size__isnull=True)
-    
+
     def comments_count(self):
         return self.comment_set.filter(moderated=True).count()
 
@@ -169,7 +159,7 @@ class MediaItem(models.Model):
         # Get cover of mp3-file
         if original_path.endswith('.mp3') and not self.audioThumbURL:
             audio_mp3 = MP3(original_path, ID3=ID3)
-            try: 
+            try:
                 apic = audio_mp3.tags.getall('APIC')
                 if apic:
                     cover_data = apic[0].data
@@ -228,7 +218,7 @@ class MediaItem(models.Model):
     def get_duration(self, filepath):
         process = subprocess.Popen(['ffmpeg',  '-i', filepath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, _ = process.communicate()
-        try: 
+        try:
             return re.search(r"Duration:\s{1}(?P<hours>\d+?):(?P<minutes>\d+?):(?P<seconds>\d+\.\d+?),", stdout, re.DOTALL).groupdict()
         except AttributeError:
             return None
@@ -302,16 +292,16 @@ Content:
 
 The comment needs moderation: %s/item/%s/#comment-%s
 
-Thank You.''') % (recipient, 
-                  self.name, 
-                  date_format(timezone.localtime(self.created)), 
-                  time_format(timezone.localtime(self.created)), 
-                  self.item.title, 
-                  self.comment, 
-                  settings.DOMAIN, 
+Thank You.''') % (recipient,
+                  self.name,
+                  date_format(timezone.localtime(self.created)),
+                  time_format(timezone.localtime(self.created)),
+                  self.item.title,
+                  self.comment,
+                  settings.DOMAIN,
                   self.item.slug,
                   self.id)
-            send_mail(_(u'[%s] New Comment: %s') % (settings.SITE_NAME, self.item.title), 
+            send_mail(_(u'[%s] New Comment: %s') % (settings.SITE_NAME, self.item.title),
                       mail_message, settings.CONTACT_EMAIL,
                       [user_mediaitem.email],
                       fail_silently=False)
@@ -390,7 +380,6 @@ class Submittal(models.Model):
     media_videoThumbURL = models.URLField(_(u"Video Thumb-URL"),blank=True, help_text=_(u"Use a picture as thumbnail"))
     media_audioThumbURL = models.URLField(_(u"Audio Cover-URL"),blank=True, help_text=_(u"Use a picture as cover"))
     media_published = models.BooleanField(verbose_name=_(u"Published"),default=False)
-    media_tags = TaggableManager(_(u"Tags"),blank=True,help_text=_(u"Insert what the media item is about in short terms divided by commas"))
     media_torrentDone = models.BooleanField(verbose_name=_(u"Torrent done"),default=False)
 
     class Meta:
