@@ -152,9 +152,6 @@
 				{% endif %}
 			</li>
 			<li class="list-group-item">
-			{% if mediaitem.torrentURL %}
-				<a href="{{ mediaitem.torrentURL }}">{% trans "Download Torrent" %}</a>
-			{% endif %}
 			{% if mediaitem.get_video_files %}
 				{% for video in mediaitem.get_video_files %}
 					<dd>

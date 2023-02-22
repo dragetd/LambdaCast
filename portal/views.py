@@ -36,7 +36,6 @@ def index(request):
     rss_list = []
     for file_type in MEDIA_FORMATS:
         rss_list.append((MEDIA_FORMATS[file_type].format_key,MEDIA_FORMATS[file_type].mediatype,"/feeds/latest/"+file_type))
-    rss_list.append(('torrent','torrent','/feeds/latest/torrent'))
     try:
         mediaitems = paginator.page(page)
     except PageNotAnInteger:
@@ -61,7 +60,6 @@ def channel_list(request,slug):
     rss_list = []
     for file_type in MEDIA_FORMATS:
         rss_list.append((MEDIA_FORMATS[file_type].format_key,MEDIA_FORMATS[file_type].mediatype,"/feeds/"+channel.slug+"/"+file_type))
-    rss_list.append(('torrent','torrent','/feeds/'+channel.slug+'/torrent'))
     try:
         mediaitems = paginator.page(page)
     except PageNotAnInteger:
@@ -173,7 +171,6 @@ def submittal(request, subm_id):
             'channel': submittal.media_channel,
             'license': submittal.media_license,
             'linkURL': submittal.media_linkURL,
-            'torrentURL': submittal.media_torrentURL,
             'media_mp4URL': submittal.media_mp4URL,
             'media_webmURL': submittal.media_webmURL,
             'media_mp3URL': submittal.media_mp3URL,
@@ -217,9 +214,7 @@ def _handle_uploaded_thumbnail(f, filename):
 @login_required
 def submit(request):
     ''' The view for uploading the items. Only authenticated users can upload media items!
-    We use django tasks to make a new task task for encoding this items. If we use 
-    bittorrent to distribute our files we also use django tasks to make the .torrent 
-    files (this can take a few minutes for very large files '''
+    We use django tasks to make a new task task for encoding this items.'''
     if request.method == 'POST':
         form = MediaItemForm(request.POST, request.FILES or None)
         if form.is_valid():
@@ -246,10 +241,6 @@ def submit(request):
                                                       media_item=media_item, mediatype=media_format.mediatype)
                 encoding_task = djangotasks.task_for_object(media_file.encode_media)
                 djangotasks.run_task(encoding_task)
-
-            if settings.USE_BITTORRENT:
-                torrent_task = djangotasks.task_for_object(media_item.create_bittorrent)
-                djangotasks.run_task(torrent_task)
             return redirect(index)
 
         return TemplateResponse(request, 'portal/submit.html', {'submit_form': form})

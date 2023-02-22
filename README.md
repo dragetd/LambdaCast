@@ -2,7 +2,7 @@ LambdaCast
 ==========
 
 LambdaCast is your personal **podcast platform** based on Django. It serves your files via projekktor 
-and audio.js, serves original files using Bittorrent and gives you feeds for MP4, MP3, and OGG files. 
+and audio.js, serves original files and gives you feeds for MP4, MP3, and OGG files. 
 
 You can use any podcast fetcher to get the feeds. It is already used by [TheRadio.cc](http://theradio.cc) 
 and is also the *testing* and *demo* instance: http://rec.theradio.cc.
@@ -11,7 +11,6 @@ Features
 --------
 
 * Encode videos and audios using ffmpeg
-* Uses Bittorrent to distribute original files (Using original Bittorrent python libs)
 * Task Managment using djangotasks
 * Uses Projekktor or audio.js to show videos in a modern way
 * Upload files using AJAX

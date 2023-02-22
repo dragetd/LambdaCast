@@ -33,7 +33,3 @@ class Command(BaseCommand):
                         djangotasks.register_task(mediaitem.encode_media, _(u"Encode the files using ffmpeg"))
                         encoding_task = djangotasks.task_for_object(mediaitem.encode_media)
                         djangotasks.run_task(encoding_task)
-                        if settings.USE_BITTORRENT:
-                            djangotasks.register_task(mediaitem.create_bittorrent, _(u"Create Bittorrent file for media and serve via Bittorrent"))
-                            torrent_task = djangotasks.task_for_object(mediaitem.create_bittorrent)
-                            djangotasks.run_task(torrent_task)

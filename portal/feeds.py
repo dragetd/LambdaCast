@@ -113,30 +113,6 @@ class LatestMedia(MediaFeed):
     def items(self):
         return MediaFeed.items(self)[:15]
 
-class TorrentFeed(Feed):
-    title = _(u"%s - Latest Episodes (Torrent)") % (settings.SITE_NAME)
-    link = "/"
-    description = _("Torrent feed for the latest episodes from %s") % (settings.SITE_NAME)
-    item_enclosure_mime_type = "application/x-bittorrent"
-
-    def items(self):
-        return MediaItem.objects.filter(published=True, torrentDone=True).exclude(torrentURL='').order_by('-date', '-created')[:15]
-
-    def item_title(self, item):
-        return item.title
-
-    def item_description(self, item):
-        return markdown.markdown(item.description, safe_mode='replace', html_replacement_text='[HTML_REMOVED]')
-
-    def item_enclosure_url(self, item):
-        return item.torrentURL
-
-    def item_enclosure_length(self, item):
-        return os.path.getsize(settings.BITTORRENT_FILES_DIR + item.slug + '.torrent')
-
-    def item_pubdate(self, item):
-        return datetime.combine(item.media_item.date, time())
-
 class ChannelFeed(MediaFeed):
     ''' This class (like the next one) gives the feeds for channels"'''
     def get_object(self, request, channel_slug, fileformat):
@@ -164,40 +140,6 @@ class ChannelFeed(MediaFeed):
     def items(self, obj):
         return MediaFeed.items(self).filter(media_item__channel=obj)
 
-class ChannelFeedTorrent(Feed):
-
-    def get_object(self, request, channel_slug):
-        return get_object_or_404(Channel, slug=channel_slug)
-
-    def title(self, obj):
-        return _(u"Torrents for Channel %s") % obj.name
-
-    def link(self, obj):
-        return obj.get_absolute_url()
-
-    def description(self, obj):
-        return  obj.description
-
-    item_enclosure_mime_type = "application/x-bittorrent"
-
-    def items(self, obj):
-        return MediaItem.objects.filter(published=True, channel=obj, torrentDone=True ).exclude(torrentURL='').order_by('-date', '-created')
-
-    def item_title(self, item):
-        return item.title
-
-    def item_description(self, item):
-        return markdown.markdown(item.description, safe_mode='replace', html_replacement_text='[HTML_REMOVED]')
-
-    def item_enclosure_url(self, item):
-        return item.torrentURL
-
-    def item_enclosure_length(self, item):
-        return os.path.getsize(settings.BITTORRENT_FILES_DIR + item.slug + '.torrent')
-
-    def item_pubdate(self, item):
-        return datetime.combine(item.media_item.date, time())
-
 class CollectionFeed(MediaFeed):
     def get_object(self, request, collection_slug, fileformat):
         MediaFeed.get_object(self, request, fileformat)
@@ -214,42 +156,6 @@ class CollectionFeed(MediaFeed):
 
     def items(self, obj):
         return MediaFeed.items(self).filter(media_item__in=obj.items.all())
-
-
-class CollectionFeedTorrent(Feed):
-
-    def get_object(self, request, collection_slug):
-        return get_object_or_404(Collection, slug=collection_slug)
-
-    def title(self, obj):
-        return _(u"Torrents for items in Collection %s") % obj.title
-
-    def link(self, obj):
-        return obj.get_absolute_url()
-
-    def description(self, obj):
-        return  obj.description
-
-    item_enclosure_mime_type = "application/x-bittorrent"
-
-    def items(self, obj):
-        return obj.items.filter(torrentDone=True, published=True).exclude(torrentURL='').order_by('-date', '-created')
-
-    def item_title(self, item):
-        return item.title
-
-    def item_description(self, item):
-        return markdown.markdown(item.description, safe_mode='replace', html_replacement_text='[HTML_REMOVED]')
-
-    def item_enclosure_url(self, item):
-        return item.torrentURL
-
-    def item_enclosure_length(self, item):
-        return os.path.getsize(settings.BITTORRENT_FILES_DIR + item.slug + '.torrent')
-
-    def item_pubdate(self, item):
-        return datetime.combine(item.media_item.date, time())
-
 
 class CommentsFeed(Feed):
     title = _(u"Latest comments from %s") % (settings.SITE_NAME)

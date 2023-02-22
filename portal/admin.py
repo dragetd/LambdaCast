@@ -16,10 +16,6 @@ def make_published(modeladmin, request, queryset):
     queryset.update(published=True)
 make_published.short_description = _(u"Publish marked media")
 
-def make_torrent_done(modeladmin, request, queryset):
-    queryset.update(torrentDone=True)
-make_torrent_done.short_description = _(u"Marked media all get a torrent")
-
 class MediaFileInline(admin.TabularInline):
     model = MediaFile
     extra = 0
@@ -33,7 +29,7 @@ class MediaItemAdmin (admin.ModelAdmin):
     form = MediaItemForm
     list_display = ['title','published','encodingDone', 'channel' ,'date']
     ordering = ['-date','-created']
-    actions = [make_published,make_torrent_done]
+    actions = [make_published]
     list_filter = ('published', 'channel')
     fieldsets = (
         (None, {
@@ -41,7 +37,7 @@ class MediaItemAdmin (admin.ModelAdmin):
         }),
         (_(u'Advanced options'), {
             'classes': ('collapse',),
-            'fields': ('user','torrentURL','videoThumbURL','audioThumbURL','duration','autoPublish','encodingDone','torrentDone')
+            'fields': ('user','videoThumbURL','audioThumbURL','duration','autoPublish','encodingDone')
         }),
     )
     inlines = [

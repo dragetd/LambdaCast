@@ -15,9 +15,6 @@
 					{% if feed_item.1 == "video" and settings.ENABLE_VIDEO %}
 					<a class="list-group-item" href="{{ feed_item.2 }}"><i class="glyphicon glyphicon-film"></i> {{ feed_item.0 }}</a>
 					{% endif %}
-					{% if feed_item.1 == "torrent" and settings.USE_BITTORRENT %}
-					<a class="list-group-item" href="{{ feed_item.2 }}"><i class="glyphicon glyphicon-file"></i> {{ feed_item.0 }}</a>
-					{% endif %}
 				{% endfor %}
 				<a class="list-group-item" href="/feeds/comments/"><i class="glyphicon glyphicon-comment"></i> {% trans "Comments-Feed (all)" %}</a>
 			</div>
